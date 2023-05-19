@@ -92,6 +92,14 @@ async function run() {
            res.send(result)
      })
 
+     app.delete("/delete/:id", async(req, res) =>{
+         const id = req.params.id;
+
+         const deleteQuery = { _id: new ObjectId(id) }
+         const result = await usersToyCollection.deleteOne(deleteQuery)
+         res.send(result)
+     })
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
@@ -102,14 +110,6 @@ async function run() {
   }
 }
 run().catch(console.dir);
-
-
-
-
-
-
-
-
 
 
 app.get('/', (req, res) => {
