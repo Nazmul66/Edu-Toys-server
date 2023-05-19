@@ -11,7 +11,7 @@ require('dotenv').config();
 
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_user}:${process.env.DB_password}@cluster0.rnkzyeb.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -30,18 +30,57 @@ async function run() {
 
     const usersToyCollection = client.db("EduToys").collection("AllToys");
 
-     app.post("/addToy", async(req, res) =>{
+    // addToy POST Method
+     app.post("/Toy", async(req, res) =>{
          const body = req.body;
          console.log(body)
          const result = await usersToyCollection.insertOne(body);
          res.send(result);
      })
 
+     // allToy GET Method
      app.get("/allToy", async(req, res) =>{
          const cursor = await usersToyCollection.find({}).toArray();
          res.send(cursor);
      })
 
+     // updateToy GET method
+     app.get("/allToy/:id", async(req, res) =>{
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) }
+
+        const result = await usersToyCollection.findOne(query)
+        res.send(result);
+      })
+
+      // updateToy PUT method
+      app.put("/update/:id", async(req, res) =>{
+          const id = req.params.id;
+          console.log(id);
+          const UpdateToy = req.body;
+          console.log(UpdateToy)
+          const filter = { _id: new ObjectId(id) }
+          const options = { upsert: true };
+
+          const updateToyInfo = {
+                $set: {
+                  ProductName  :  UpdateToy.ProductName, 
+                  seller_Name  :  UpdateToy.seller_Name, 
+                  Email        :  UpdateToy.Email, 
+                  Category     :  UpdateToy.Category, 
+                  Price        :  UpdateToy.Price, 
+                  Rating       :  UpdateToy.Rating,  
+                  Quantity     :  UpdateToy.Quantity, 
+                  Photo        :  UpdateToy.Photo, 
+                  Describe     :  UpdateToy.Describe, 
+                }
+          }
+
+          const result = await usersToyCollection.updateOne(filter, updateToyInfo, options)
+          res.send(result);
+      })
+
+      // myToy GET method to get all email data
      app.get("/myToy", async(req, res) =>{
       // console.log(req.query.email)
            let queries = {};
@@ -52,6 +91,7 @@ async function run() {
            const result = await cursors.toArray();
            res.send(result)
      })
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
