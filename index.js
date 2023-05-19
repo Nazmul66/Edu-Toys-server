@@ -30,7 +30,6 @@ async function run() {
 
     const usersToyCollection = client.db("EduToys").collection("AllToys");
 
-
      app.post("/addToy", async(req, res) =>{
          const body = req.body;
          console.log(body)
@@ -41,6 +40,17 @@ async function run() {
      app.get("/allToy", async(req, res) =>{
          const cursor = await usersToyCollection.find({}).toArray();
          res.send(cursor);
+     })
+
+     app.get("/myToy", async(req, res) =>{
+      // console.log(req.query.email)
+           let queries = {};
+           if(req?.query?.email){
+               queries = { Email : req.query.email }
+           }
+           const cursors = usersToyCollection.find(queries)
+           const result = await cursors.toArray();
+           res.send(result)
      })
 
     // Send a ping to confirm a successful connection
