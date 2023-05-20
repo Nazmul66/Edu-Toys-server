@@ -30,17 +30,27 @@ async function run() {
 
     const usersToyCollection = client.db("EduToys").collection("AllToys");
 
+        // creating index of one field
+        const indexKeys = { ProductName: 1 }
+        // replace field with your actual field
+        const indexOption = { name: "EveryToy" };
+   
+        const result = await usersToyCollection.createIndex(indexKeys, indexOption);
+
     // addToy POST Method
      app.post("/Toy", async(req, res) =>{
          const body = req.body;
+
          console.log(body)
          const result = await usersToyCollection.insertOne(body);
          res.send(result);
      })
 
-     // allToy GET Method
+     // allToy GET Method & use limit 
      app.get("/allToy", async(req, res) =>{
-         const cursor = await usersToyCollection.find({}).toArray();
+         const limit =  parseInt(req.query.limit) ;
+        //  console.log(limit)
+         const cursor = await usersToyCollection.find({}).limit(limit).toArray();
          res.send(cursor);
      })
 
@@ -53,6 +63,19 @@ async function run() {
         res.send(result);
       })
 
+      // for category to toggle tab 
+      app.get("/category/:text", async(req, res) =>{
+            // console.log(req.params.text)
+            if(req.params.text == "math" || req.params.text == "science" || req.params.text == "puzzle"){
+              const result = await usersToyCollection.find({
+                Category : req.params.text
+              }).toArray();
+             return res.send(result);
+            }
+            const result = await usersToyCollection.find({}).toArray();
+            res.send(result) 
+      })
+
       // updateToy PUT method
       app.put("/update/:id", async(req, res) =>{
           const id = req.params.id;
@@ -63,17 +86,17 @@ async function run() {
           const options = { upsert: true };
 
           const updateToyInfo = {
-                $set: {
-                  ProductName  :  UpdateToy.ProductName, 
-                  seller_Name  :  UpdateToy.seller_Name, 
-                  Email        :  UpdateToy.Email, 
-                  Category     :  UpdateToy.Category, 
-                  Price        :  UpdateToy.Price, 
-                  Rating       :  UpdateToy.Rating,  
-                  Quantity     :  UpdateToy.Quantity, 
-                  Photo        :  UpdateToy.Photo, 
-                  Describe     :  UpdateToy.Describe, 
-                }
+                $set:  {
+                  ProductName   :   UpdateToy.ProductName, 
+                  seller_Name   :   UpdateToy.seller_Name, 
+                  Email         :   UpdateToy.Email, 
+                  Category      :   UpdateToy.Category, 
+                  Price         :   UpdateToy.Price, 
+                  Rating        :   UpdateToy.Rating,  
+                  Quantity      :   UpdateToy.Quantity, 
+                  Photo         :   UpdateToy.Photo, 
+                  Describe      :   UpdateToy.Describe, 
+              }
           }
 
           const result = await usersToyCollection.updateOne(filter, updateToyInfo, options)
