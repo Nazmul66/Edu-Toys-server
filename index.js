@@ -10,6 +10,15 @@ app.use(bodyParser.json());
 require('dotenv').config();
 
 
+/// corsOptions
+const corsOptions ={
+  origin:'*', 
+  credentials:true,
+  optionSuccessStatus:200,
+}
+
+app.use(cors(corsOptions))
+
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_user}:${process.env.DB_password}@cluster0.rnkzyeb.mongodb.net/?retryWrites=true&w=majority`;
@@ -40,6 +49,7 @@ async function run() {
     // addToy POST Method
      app.post("/Toy", async(req, res) =>{
          const body = req.body;
+         body.createdAt = new Date();
 
          console.log(body)
          const result = await usersToyCollection.insertOne(body);
@@ -63,13 +73,24 @@ async function run() {
         res.send(result);
       })
 
+      //searchText GET method
+      app.get("/searchText/:text", async(req, res) =>{
+           const search = req.params.text;
+
+           const result = await usersToyCollection.find({
+               ProductName: { $regex: search, $options: "i" } 
+           }).toArray();
+           res.send(result)
+      });
+
       // for category to toggle tab 
       app.get("/category/:text", async(req, res) =>{
             // console.log(req.params.text)
             if(req.params.text == "math" || req.params.text == "science" || req.params.text == "puzzle"){
               const result = await usersToyCollection.find({
                 Category : req.params.text
-              }).toArray();
+              })
+              .toArray();
              return res.send(result);
             }
             const result = await usersToyCollection.find({}).toArray();
@@ -79,23 +100,23 @@ async function run() {
       // updateToy PUT method
       app.put("/update/:id", async(req, res) =>{
           const id = req.params.id;
-          console.log(id);
+          // console.log(id);
           const UpdateToy = req.body;
-          console.log(UpdateToy)
+          // console.log(UpdateToy)
           const filter = { _id: new ObjectId(id) }
           const options = { upsert: true };
 
           const updateToyInfo = {
                 $set:  {
-                  ProductName   :   UpdateToy.ProductName, 
-                  seller_Name   :   UpdateToy.seller_Name, 
-                  Email         :   UpdateToy.Email, 
-                  Category      :   UpdateToy.Category, 
-                  Price         :   UpdateToy.Price, 
-                  Rating        :   UpdateToy.Rating,  
-                  Quantity      :   UpdateToy.Quantity, 
-                  Photo         :   UpdateToy.Photo, 
-                  Describe      :   UpdateToy.Describe, 
+                    ProductName   :   UpdateToy.ProductName, 
+                    seller_Name   :   UpdateToy.seller_Name, 
+                    Email         :   UpdateToy.Email, 
+                    Category      :   UpdateToy.Category, 
+                    Price         :   UpdateToy.Price, 
+                    Rating        :   UpdateToy.Rating,  
+                    Quantity      :   UpdateToy.Quantity, 
+                    Photo         :   UpdateToy.Photo, 
+                    Describe      :   UpdateToy.Describe, 
               }
           }
 
@@ -111,10 +132,11 @@ async function run() {
                queries = { Email : req.query.email }
            }
            const cursors = usersToyCollection.find(queries)
-           const result = await cursors.toArray();
+           const result = await cursors.sort({ Price: -1 }).toArray();
            res.send(result)
      })
 
+     // DELETE method to delete data
      app.delete("/delete/:id", async(req, res) =>{
          const id = req.params.id;
 
