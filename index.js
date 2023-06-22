@@ -60,8 +60,8 @@ async function run() {
      app.get("/allToy", async(req, res) =>{
          const limit =  parseInt(req.query.limit) ;
         //  console.log(limit)
-         const cursor = await usersToyCollection.find({}).limit(limit).toArray();
-         res.send(cursor);
+         const result = await usersToyCollection.find({}).limit(limit).toArray();
+         res.send(result);
      })
 
      // updateToy GET method
